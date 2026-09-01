@@ -225,6 +225,11 @@
     color: red;
 }
 
+.no-documents {
+    width: 100%;
+    text-align: left;
+}
+
 /* Tablet screens (769px - 1180px) */
 @media (max-width: 1180px) and (min-width: 769px) {
     .homepage {
