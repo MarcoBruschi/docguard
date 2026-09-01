@@ -1,0 +1,48 @@
+.sidebar {
+    background-color: #0F172A;
+    display: flex;
+    flex-direction: column;
+    width: 15%;
+    height: 100%;
+    color: white;
+    padding: 20px 0 0 20px;
+    gap: 1em;
+}
+
+.side-logo {
+    font-weight: bold;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.logo-span {
+    color: #0D9488;
+}
+
+.side-profile {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.profile-picture {
+    width: 50px;
+    border-radius: 100%;
+    background-color: #1E293B;
+    padding: 1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-name {
+    font-size: 14px;
+}
+
+.profile-role {
+    color: #94A3B8;
+    font-size: 12px;
+}
