@@ -3,8 +3,13 @@ import logo from "../../assets/DocGuardLogo.svg";
 
 export default function SideBar() {
     return (
-        <div className="sidebar">
-            <div className="side-logo"><img src={logo} alt="DocGuard logo" />Doc<span className="logo-span">Guard</span></div>
+        <aside className="sidebar">
+            <div className="sidebar-top">
+                <div className="side-logo">
+                    <img src={logo} alt="DocGuard logo" />
+                    <span>Doc<span className="logo-span">Guard</span></span>
+                </div>
+            </div>
             <div className="side-profile">
                 <div className="profile-picture">U</div>
                 <div className="profile-about">
@@ -12,6 +17,6 @@ export default function SideBar() {
                     <div className="profile-role">Jurídico</div>
                 </div>
             </div>
-        </div>
-    )
+        </aside>
+    );
 }
