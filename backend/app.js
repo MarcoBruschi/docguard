@@ -33,14 +33,35 @@ app.post('/api/doc/resumir', upload.single('documento'), async (req, res) => {
       return res.status(400).json({ erro: 'PDF sem texto legível ou composto por imagens.' });
     }
 
-    const systemPrompt = `Você é um analista de documentos. Regras absolutas: 1. Responda APENAS com um objeto JSON válido. 2. Não adicione nenhum texto antes ou depois do JSON. A propriedade 'urgencia' deve ser um número inteiro (1, 2 ou 3). Estrutura EXATA do JSON: { "resumo": "Resumo em até 3 linhas.", "urgencia": 1, "prazos": [ { "data": "Data/período", "descricao": "O que acontece" } ] }`;
+    const systemPrompt = `Você é um analista especialista em documentos e conformidade contratual.
+      Regras absolutas:
+      1. Responda APENAS com um objeto JSON válido, sem qualquer texto ou formatação markdown adicional antes ou depois.
+      2. A propriedade 'risk' DEVE ser estritamente uma destas três opções (com a mesma capitalização e acentuação): "Alto", "Médio" ou "Seguro".
+      3. A propriedade 'summary' deve ser um resumo conciso de até 3 frases destacando os principais riscos, cláusulas críticas ou a confirmação de conformidade.
+
+      Estrutura EXATA do JSON:
+      {
+        "summary": "Resumo em até 3 frases destacando os pontos de atenção ou conformidade.",
+        "risk": "Alto"
+      }`;
+
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: `${systemPrompt} ${textoExtraido}`
     });
 
-    return res.status(200).json({ success: response.text });
+    const responseJsonReady = response.text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    const analise = JSON.parse(responseJsonReady);
+
+    return res.status(200).json({
+      success: {
+        name: req.file.originalname,
+        updated: "Atualizado agora",
+        summary: analise.summary,
+        risk: analise.risk
+      }
+    });
 
   } catch (error) {
     console.error('Erro:', error);

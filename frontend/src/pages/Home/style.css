@@ -2,12 +2,34 @@
     padding: 36px 40px;
     flex: 1;
     min-width: 0;
+    min-height: 0;
+    height: 100%;
     background-color: #F8FAFC;
     display: flex;
     flex-direction: column;
     gap: 32px;
     box-sizing: border-box;
     overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
+}
+
+.homepage::-webkit-scrollbar {
+    width: 8px;
+}
+
+.homepage::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.homepage::-webkit-scrollbar-thumb {
+    background-color: #CBD5E1;
+    border-radius: 9999px;
+}
+
+.homepage::-webkit-scrollbar-thumb:hover {
+    background-color: #94A3B8;
 }
 
 .top {
@@ -127,31 +149,7 @@
     gap: 14px;
     width: 100%;
     min-width: 0;
-    max-height: 540px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 6px;
-    padding-bottom: 8px;
     box-sizing: border-box;
-    scrollbar-width: thin;
-    scrollbar-color: #CBD5E1 transparent;
-}
-
-.documents-risk::-webkit-scrollbar {
-    width: 6px;
-}
-
-.documents-risk::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.documents-risk::-webkit-scrollbar-thumb {
-    background-color: #CBD5E1;
-    border-radius: 9999px;
-}
-
-.documents-risk::-webkit-scrollbar-thumb:hover {
-    background-color: #94A3B8;
 }
 
 .highrisk-title,
@@ -190,9 +188,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 1em;
 }
 
-.analise button {
+.analise-button {
     padding: 10px 15px;
     background-color: #1E293B;
     color: white;
@@ -204,9 +203,26 @@
     cursor: pointer;
 }
 
-.analise button:hover {
+.analise-button:hover {
     background-color: white;
     color: #1E293B;
+}
+
+.cancel-button {
+    padding: 10px 15px;
+    background-color: red;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    border: 1px solid red;
+    border-radius: 4px;
+    transition: background-color 0.35s, color 0.35s;
+    cursor: pointer;
+}
+
+.cancel-button:hover {
+    background-color: white;
+    color: red;
 }
 
 /* Tablet screens (769px - 1180px) */
