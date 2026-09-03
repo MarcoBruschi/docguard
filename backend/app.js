@@ -38,16 +38,22 @@ app.post('/api/doc/resumir', upload.single('documento'), async (req, res) => {
     }
 
     const systemPrompt = `Você é um analista especialista em documentos e conformidade contratual.
-      Regras absolutas:
-      1. Responda APENAS com um objeto JSON válido, sem qualquer texto ou formatação markdown adicional antes ou depois.
-      2. A propriedade 'risk' DEVE ser estritamente uma destas três opções (com a mesma capitalização e acentuação): "Alto", "Médio" ou "Seguro".
-      3. A propriedade 'summary' deve ser um resumo conciso de até 3 frases destacando os principais riscos, cláusulas críticas ou a confirmação de conformidade.
 
-      Estrutura EXATA do JSON:
-      {
-        "summary": "Resumo em até 3 frases destacando os pontos de atenção ou conformidade.",
-        "risk": "Alto"
-      }`;
+Regras de Classificação de Risco (avalie estritamente com base no contexto do documento):
+- "Seguro": Cláusulas padrão, equilíbrio entre as partes, obrigações claras, conformidade com a legislação aplicável e ausência de penalidades desproporcionais ou responsabilidades ilimitadas.
+- "Médio": Pequenas ambiguidades, prazos curtos, penalidades moderadas ou cláusulas que exigem atenção, mas que não representam ameaça jurídica ou financeira imediata e severa.
+- "Alto": Cláusulas abusivas, ausência de limitação de responsabilidade, penalidades draconianas, rescisão unilateral sem justa causa, cessão indevida de dados/PI ou ilegalidades evidentes.
+
+Regras de Saída:
+1. Responda APENAS com um objeto JSON válido, sem qualquer texto adicional ou blocos de formatação markdown antes ou depois.
+2. A propriedade "risk" DEVE ser estritamente uma destas três opções: "Alto", "Médio" ou "Seguro".
+3. A propriedade "summary" deve conter um resumo conciso de até 3 frases destacando os fatores que justificam a classificação atribuída.
+
+Estrutura EXATA do JSON:
+{
+  "summary": "Resumo de até 3 frases justificando o nível de risco atribuído.",
+  "risk": "Seguro" | "Médio" | "Alto"
+}`;
 
 
     const response = await ai.models.generateContent({
@@ -59,27 +65,17 @@ app.post('/api/doc/resumir', upload.single('documento'), async (req, res) => {
     const analise = JSON.parse(responseJsonReady);
 
     const reqFile = req.file;
-
-    const timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
-
-    const file = {
-      nome_arquivo: reqFile.originalname,
-      tamanho_bytes: reqFile.size,
-      dados_ia: analise,
-      criado_em: timestamp
-    }
-
-    const sqlQuery = "INSERT INTO resumos_pdf (nome_arquivo, tamanho_bytes, dados_ia, criado_em) VALUES (?, ?, ?, ?)";
+    const riscoDb = analise.risk === "Seguro" ? "Baixo" : analise.risk;
+    const sqlQuery = "INSERT INTO resumos_pdf (nome_arquivo, tamanho_bytes, risco, resumo) VALUES (?, ?, ?, ?)";
 
     try {
-      const [results, fields] = await conn.promise().query(sqlQuery, [
-        file.nome_arquivo,
-        file.tamanho_bytes,
-        JSON.stringify(file.dados_ia),
-        file.criado_em
+      await conn.promise().query(sqlQuery, [
+        reqFile.originalname,
+        reqFile.size,
+        riscoDb,
+        analise.summary
       ]);
-      
-    } catch(error) {
+    } catch (error) {
       console.log(error);
     }
 
@@ -98,6 +94,21 @@ app.post('/api/doc/resumir', upload.single('documento'), async (req, res) => {
     return res.status(500).json({ erro: 'Falha ao processar o PDF com a IA.' });
   }
 });
+
+app.get('/api/doc', async (req, res) => {
+  try {
+    const sqlQuery = "SELECT * FROM resumos_pdf ORDER BY id DESC";
+
+    const [rows] = await conn.promise().query(sqlQuery);
+    return res.status(200).json({ success: rows });
+  } catch (error) {
+    console.error('Erro: ', error);
+    return res.status(500).json({ erro: "Falha ao receber documentos resumidos" });
+  }
+});
+
+
+
 conn.connect((error) => {
   if (error) return console.log("erro: " + error);
   console.log("banco conectado");

@@ -4,7 +4,7 @@ import SearchNoti from "../../components/SearchNoti/SearchNoti.jsx";
 import DocumentCard from "../../components/DocumentCard/DocumentCard.jsx";
 import loadingIcon from "../../assets/loading.svg";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
 
@@ -23,13 +23,11 @@ export default function Home() {
 
     const handleDragOver = (e) => {
         e.preventDefault();
-        console.log("dragging");
         setIsDragOver(true);
     }
 
     const handleDrop = (e) => {
         e.preventDefault();
-        console.log("dropped");
         setFile(e.dataTransfer.files[0]);
         setIsDragOver(false);
     }
@@ -44,33 +42,77 @@ export default function Home() {
 
         setIsLoading(true);
 
-        const response = await fetch("http://localhost:3000/api/doc/resumir", {
-            method: "POST",
-            body: formData
-        });
+        try {
+            const response = await fetch("http://localhost:3000/api/doc/resumir", {
+                method: "POST",
+                body: formData
+            });
 
-        const data = await response.json();
-        const parsed = typeof data.success === "string" ? JSON.parse(data.success) : data.success;
-        const newCard = {
-            name: file.name,
-            updated: "Atualizado agora",
-            summary: parsed.summary,
-            risk: parsed.risk
-        };
-        setIsLoading(false);
-        setFileList(prev => [...prev, newCard]);
-        setFile(null);
+            const data = await response.json();
+            if (data.success) {
+                const parsed = JSON.parse(data.success);
+                const newCard = {
+                    name: file.name,
+                    updated: "Atualizado agora",
+                    summary: parsed.summary,
+                    risk: parsed.risk
+                };
+                setFileList(prev => [newCard, ...prev]);
+                setFile(null);
+                if (uploadRef.current) {
+                    uploadRef.current.value = "";
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao processar documento:", error);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     const cancelAnalise = (e) => {
         e.preventDefault();
         setFile(null);
+        if (uploadRef.current) {
+            uploadRef.current.value = "";
+        }
     }
 
     const renderCards = (cardList, risk) => {
         const data = cardList.filter(c => c.risk === risk);
         return data.map((d, index) => <DocumentCard key={index} name={d.name} updated={d.updated} summary={d.summary} risk={d.risk} />);
     }
+
+    const fetchData = async () => {
+        try {
+            const response = await fetch("http://localhost:3000/api/doc");
+            const data = await response.json();
+            if (!data.success) return;
+
+            const mapped = data.success.map(item => {
+
+                const dataFormatada = item.criado_em ? new Date(item.criado_em).toLocaleDateString("pt-BR") : "Hoje";
+
+                return {
+                    name: item.nome_arquivo,
+                    updated: `Atualizado em ${dataFormatada}`,
+                    summary: item.resumo,
+                    risk: item.risco
+                };
+            });
+            setFileList(mapped);
+        } catch (error) {
+            console.error("Erro ao buscar documentos:", error);
+        }
+    }
+
+    useEffect(() => {
+        fetchData();
+    }, [fileList]);
+
+    useEffect(() => {
+        fetchData();
+    }, []);
 
     return (
         <div className="homepage">
@@ -100,10 +142,10 @@ export default function Home() {
                 <div className="middle-loading">
                     <img className="loadingIcon" src={loadingIcon} alt="ícone de carregamento" />
                 </div>}
-            {(file !== null && isLoading === false) ? <div className="analise"><button className="analise-button" onClick={sendToAi}>Analizar</button><button className="cancel-button" onClick={cancelAnalise}>Cancelar</button></div> : <></>}
+            {(file !== null && isLoading === false) ? <div className="analise"><button className="analise-button" onClick={sendToAi}>Analisar</button><button className="cancel-button" onClick={cancelAnalise}>Cancelar</button></div> : <></>}
             <div className="home-documents">
                 <div className="home-documents-title">Documentos Recentes</div>
-                {fileList.length === 0 ? <div className="">Nenhum documento encontrado, analize seus documentos.</div> : <>
+                {fileList.length === 0 ? <div className="no-documents">Nenhum documento encontrado, analise seus documentos.</div> : <>
                     <div className="home-documents-container">
                         <div className="documents-highrisk documents-risk">
                             <div className="highrisk-title risk-title">Urgente</div>
