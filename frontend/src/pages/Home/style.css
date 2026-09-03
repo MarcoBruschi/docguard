@@ -59,7 +59,8 @@
     font-weight: 400;
 }
 
-.middle {
+.middle,
+.middle-loading {
     padding: 36px 24px;
     display: flex;
     flex-direction: column;
@@ -82,7 +83,8 @@
     border-color: #0D9488;
 }
 
-.middle img {
+.middle img,
+.middle-loading img {
     width: 36px;
     height: 36px;
     opacity: 0.85;
@@ -260,7 +262,8 @@
         font-size: 20px;
     }
 
-    .middle {
+    .middle,
+    .middle-loading {
         padding: 28px 16px;
     }
 
